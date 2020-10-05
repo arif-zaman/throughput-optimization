@@ -282,22 +282,23 @@ def report_throughput(start_time):
     while (len(transfer_status) > sum(transfer_status)) and (transfer_done.value == 0):
         t1 = time.time()
         time_since_begining = np.round(t1-start_time, 1)
-        total_bytes = np.sum(file_offsets)
-        thrpt = np.round((total_bytes*8)/(time_since_begining*1000*1000), 2)
         
-        curr_total = total_bytes - previous_total
-        curr_time_sec = np.round(time_since_begining - previous_time, 3)
-        curr_thrpt = np.round((curr_total*8)/(curr_time_sec*1000*1000), 2)
-        previous_time, previous_total = time_since_begining, total_bytes
-        throughput_logs.append(curr_thrpt)
-        log.info("Throughput @{0}s: Current: {1}Mbps, Average: {2}Mbps".format(
-            time_since_begining, curr_thrpt, thrpt))
-        t2 = time.time()
-        time.sleep(max(0, 1 - (t2-t1)))
+        if time_since_begining > 0:
+            total_bytes = np.sum(file_offsets)
+            thrpt = np.round((total_bytes*8)/(time_since_begining*1000*1000), 2)
+            
+            curr_total = total_bytes - previous_total
+            curr_time_sec = np.round(time_since_begining - previous_time, 3)
+            curr_thrpt = np.round((curr_total*8)/(curr_time_sec*1000*1000), 2)
+            previous_time, previous_total = time_since_begining, total_bytes
+            throughput_logs.append(curr_thrpt)
+            log.info("Throughput @{0}s: Current: {1}Mbps, Average: {2}Mbps".format(
+                time_since_begining, curr_thrpt, thrpt))
+            t2 = time.time()
+            time.sleep(max(0, 1 - (t2-t1)))
 
 
 if __name__ == '__main__':
-    print(file_names)
     lock = mp.Lock()
     workers = [mp.Process(target=worker, args=(i, lock)) for i in range(configurations["thread_limit"])]
     for p in workers:
